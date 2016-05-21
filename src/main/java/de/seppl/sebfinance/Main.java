@@ -1,93 +1,117 @@
 package de.seppl.sebfinance;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import de.seppl.sebfinance.argument.ArgumentParser;
 import de.seppl.sebfinance.argument.Arguments;
 import de.seppl.sebfinance.argument.Arguments.EmptyFile;
-import de.seppl.sebfinance.content.ContentParser;
-import de.seppl.sebfinance.content.ContentParserV1;
-import de.seppl.sebfinance.content.ContentParserV2;
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
 import de.seppl.sebfinance.kontoauszug.Lastschrift;
+import de.seppl.sebfinance.pdf.ContentParserV1;
+import de.seppl.sebfinance.pdf.ContentParserV2;
+import de.seppl.sebfinance.pdf.KontoauszugParser;
 import de.seppl.sebfinance.pdf.PdfParser;
+import de.seppl.sebfinance.pdf.RawPdf;
 import de.seppl.sebfinance.print.ConsolePrinter;
-import de.seppl.sebfinance.report.Report;
-import de.seppl.sebfinance.report.Report.ReportLine;
-import de.seppl.sebfinance.report.ReportBuilder;
+import de.seppl.sebfinance.print.Report;
+import de.seppl.sebfinance.print.Report.ReportLine;
+import de.seppl.sebfinance.print.ReportBuilder;
 
-public class Main {
 
-	public static void main(String[] args) {
+public class Main
+{
 
-		Arguments arguments = new Arguments();
-		ArgumentParser argsParser = new ArgumentParser(args);
-		PdfParser pdfParser = new PdfParser();
-		ReportBuilder reportBuilder = new ReportBuilder();
-		ConsolePrinter<ReportLine> consolePrinter = new ConsolePrinter<>("Reportlines", ReportLine.columns());
+    public static void main(String[] args)
+    {
+        Arguments arguments = new Arguments();
+        ArgumentParser argsParser = new ArgumentParser(args);
 
-		Collection<ContentParser> contentParsers = Arrays.asList(//
-				new ContentParserV1(), //
-				new ContentParserV2());
+        PdfParser pdfParser = new PdfParser();
+        Collection<ContentParser> contentParsers = Arrays.asList(//
+            new ContentParserV1(), //
+            new ContentParserV2());
 
-		Collection<File> pdfs = files(arguments, argsParser);
+        ReportBuilder reportBuilder = new ReportBuilder();
+        ConsolePrinter<ReportLine> consolePrinter = new ConsolePrinter<>("Reportlines",
+            ReportLine.columns());
 
-		List<Kontoauszug> auszuege = new ArrayList<>();
-		pdfs.forEach(pdf -> {
-			Optional<Kontoauszug> kontoauszug = parse(pdfParser, contentParsers, pdf);
-			kontoauszug.ifPresent(auszug -> auszuege.add(auszug));
-		});
+        Collection<File> pdfs = files(arguments, argsParser);
 
-		Collection<Report> reports = reportBuilder.sollReports(auszuege);
+        Collection<Kontoauszug> auszuege = parse(pdfParser, contentParsers, pdfs);
 
-		reports.stream().sorted().forEach(r -> {
-			System.out.println(r.auszug().monat());
-			consolePrinter.print(r.lines());
+        print(auszuege);
 
-			r.posten(Lastschrift.SONSTIGES).forEach(p -> System.out.println(p));
-			System.out.println("");
-		});
-	}
+        Collection<Report> reports = reportBuilder.sollReports(auszuege);
 
-	private static Collection<File> files(Arguments arguments, ArgumentParser argsParser) {
-		File pdf = argsParser.parse(arguments.pdf());
+        reports.stream().sorted().forEach(r -> {
+            System.out.println(r.auszug().monat());
+            consolePrinter.print(r.lines());
 
-		if (!(pdf instanceof EmptyFile))
-			return Arrays.asList(pdf);
+            r.posten(Lastschrift.SONSTIGES).forEach(p -> System.out.println(p));
+            System.out.println("");
+        });
+    }
 
-		File dir = argsParser.parse(arguments.dir());
+    private static Collection<File> files(Arguments arguments, ArgumentParser argsParser)
+    {
+        File pdf = argsParser.parse(arguments.pdf());
 
-		if (dir instanceof EmptyFile)
-			throw new IllegalArgumentException("No files found!");
+        if (!(pdf instanceof EmptyFile))
+            return Arrays.asList(pdf);
 
-		if (!dir.isDirectory())
-			throw new IllegalArgumentException("No direcory:" + dir);
+        File dir = argsParser.parse(arguments.dir());
 
-		return Arrays.asList(dir.listFiles());
-	}
+        if (dir instanceof EmptyFile)
+            throw new IllegalArgumentException("No files found!");
 
-	private static Optional<Kontoauszug> parse(PdfParser pdfParser, Collection<ContentParser> contentParsers,
-			File pdf) {
-		Collection<String> content = pdfParser.parse(pdf);
-		if (content.isEmpty()) {
-			System.err.println("Empty content: " + pdf);
-			return Optional.empty();
-		}
+        if (!dir.isDirectory())
+            throw new IllegalArgumentException("No direcory:" + dir);
 
-		for (ContentParser contentParser : contentParsers) {
-			try {
-				return Optional.of(contentParser.kontoauszug(content));
-			} catch (IllegalStateException e) {
-				if (!e.getMessage().equals("Keine Posten"))
-					System.err.println(e.getMessage());
-			}
-		}
-		System.err.println("No fitting ContentParser found!");
-		return Optional.empty();
-	}
+        return Arrays.asList(dir.listFiles());
+    }
+
+    private static Optional<Kontoauszug> parse(PdfParser pdfParser,
+        Collection<KontoauszugParser> kontoauszugParsers, Collection<File> pdfs)
+    {
+        Collection<RawPdf> raws = pdfs.stream() //
+            .map(pdfParser::raw) //
+            .collect(Collectors.toList());
+
+        kontoauszugParsers.stream() //
+        .map(mapper)
+        
+        Collection<String> content = pdfParser.raw(pdfs);
+        if (content.isEmpty())
+        {
+            System.err.println("Empty content: " + pdfs);
+            return Optional.empty();
+        }
+
+        for (ContentParser contentParser : contentParsers)
+        {
+            try
+            {
+                return Optional.of(contentParser.kontoauszug(content));
+            }
+            catch (IllegalStateException e)
+            {
+                if (!e.getMessage().equals("Keine Posten"))
+                    System.err.println(e.getMessage());
+            }
+        }
+        System.err.println("No fitting ContentParser found!");
+        return Optional.empty();
+    }
+
+    private static Kontoauszug kontoauszug(Collection<KontoauszugParser> kontoauszugParsers, RawPdf raw)
+    {
+        kontoauszugParsers.stream() //
+            .map(p -> p.kontoauszug(rawPdf));
+
+        return null;
+    }
 }

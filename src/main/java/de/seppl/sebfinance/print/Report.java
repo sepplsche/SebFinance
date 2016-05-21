@@ -1,4 +1,4 @@
-package de.seppl.sebfinance.report;
+package de.seppl.sebfinance.print;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import de.seppl.sebfinance.kontoauszug.Kategorie;
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
 import de.seppl.sebfinance.kontoauszug.Posten;
-import de.seppl.sebfinance.print.PrintableColumn;
 
 public class Report implements Comparable<Report> {
 

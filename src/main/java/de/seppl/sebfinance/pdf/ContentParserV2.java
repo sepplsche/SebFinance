@@ -1,4 +1,4 @@
-package de.seppl.sebfinance.content;
+package de.seppl.sebfinance.pdf;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -10,14 +10,12 @@ import java.util.Optional;
 import org.apache.commons.lang.StringUtils;
 
 import de.seppl.sebfinance.kontoauszug.Kategorie;
-import de.seppl.sebfinance.kontoauszug.Kontoauszug;
 import de.seppl.sebfinance.kontoauszug.Posten;
 
 
 public class ContentParserV2
     implements ContentParser
 {
-
     private static final String MARKER_MONAT_START = "Kontoauszug ";
     private static final String MARKER_MONAT_BIS = " - ";
     private static final String MARKER_MONAT_END = " Kontonummer";
@@ -28,18 +26,9 @@ public class ContentParserV2
     private static final String MARKER_POSTEN_PAGE_LAST_END = "Total";
 
     @Override
-    public Kontoauszug kontoauszug(Collection<String> content)
+    public LocalDate monat(RawPdf raw)
     {
-        LocalDate monat = parseMonat(content);
-        Collection<Posten> posten = parsePosten(content);
-        if (posten.isEmpty())
-            throw new IllegalStateException("Keine Posten");
-        return new Kontoauszug(monat, posten);
-    }
-
-    private LocalDate parseMonat(Collection<String> content)
-    {
-        return content.stream() //
+        return raw.lines().stream() //
             .filter(line -> line.startsWith(MARKER_MONAT_START)) //
             .findFirst() //
             .map(monatLine -> StringUtils.substringAfter(monatLine, MARKER_MONAT_BIS)) //
@@ -48,10 +37,10 @@ public class ContentParserV2
             .get();
     }
 
-    private Collection<Posten> parsePosten(Collection<String> content)
+    @Override
+    public Collection<Posten> posten(RawPdf raw)
     {
-        Collection<String> postenLines = postenLines(content);
-        return posten(postenLines);
+        return posten(postenLines(raw.lines()));
     }
 
     private Collection<String> postenLines(Collection<String> content)

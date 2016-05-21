@@ -3,8 +3,6 @@ package de.seppl.sebfinance.pdf;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -13,11 +11,10 @@ import org.apache.pdfbox.text.PDFTextStripper;
 
 public class PdfParser
 {
-
-    public Collection<String> parse(File pdf)
+    public RawPdf raw(File pdf)
     {
         if (!pdf.getName().startsWith("rep"))
-            return Collections.emptyList();
+            throw new IllegalArgumentException("wrong file: " + pdf);
 
         PDDocument document = null;
         try
@@ -26,7 +23,7 @@ public class PdfParser
             PDFTextStripper stripper = new PDFTextStripper();
             String content = stripper.getText(document);
             String[] lines = StringUtils.split(content, System.lineSeparator());
-            return Arrays.asList(lines);
+            return new RawPdf(Arrays.asList(lines));
         }
         catch (IOException e)
         {
