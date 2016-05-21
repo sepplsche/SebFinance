@@ -3,8 +3,6 @@ package de.seppl.sebfinance.kontoauszug;
 import java.time.LocalDate;
 import java.util.Collection;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 
 public class Kontoauszug
 {
@@ -16,7 +14,6 @@ public class Kontoauszug
     {
         this.monat = monat;
         this.posten = posten;
-        checkArgument(!posten.isEmpty(), "Keine Posten bei Monat: " + monat);
     }
 
     public LocalDate monat()

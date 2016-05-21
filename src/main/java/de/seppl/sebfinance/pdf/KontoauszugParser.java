@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
+import de.seppl.sebfinance.kontoauszug.Posten;
 
 
 public class KontoauszugParser
@@ -19,14 +20,10 @@ public class KontoauszugParser
     {
         Collection<Kontoauszug> auszuege = new ArrayList<>();
         parsers.forEach(parser -> {
-            try
-            {
-                auszuege.add(new Kontoauszug(parser.monat(raw), parser.posten(raw)));
-            }
-            catch (Exception e)
-            {
-                // ignore
-            }
+            Collection<Posten> posten = parser.posten(raw);
+            if (posten.isEmpty())
+                return;
+            auszuege.add(new Kontoauszug(parser.monat(raw), posten));
         });
         if (auszuege.isEmpty())
             throw new IllegalStateException("Kein Kontoauszug für Raw-PDF: " + raw.lines());
