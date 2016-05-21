@@ -1,5 +1,6 @@
 package de.seppl.sebfinance.pdf;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
@@ -16,15 +17,19 @@ public class KontoauszugParser
 
     public Kontoauszug kontoauszug(RawPdf raw)
     {
+        Collection<Kontoauszug> auszuege = new ArrayList<>();
         parsers.forEach(parser -> {
             try
             {
-                new Kontoauszug(parser.monat(raw), parser.posten(raw));
+                auszuege.add(new Kontoauszug(parser.monat(raw), parser.posten(raw)));
             }
             catch (Exception e)
             {
-
+                // ignore
             }
         });
+        if (auszuege.isEmpty())
+            throw new IllegalStateException("Kein Kontoauszug für Raw-PDF: " + raw.lines());
+        return auszuege.iterator().next();
     }
 }
