@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
@@ -11,6 +13,7 @@ import org.apache.commons.lang.StringUtils;
 import de.seppl.sebfinance.argument.ArgumentParser;
 import de.seppl.sebfinance.argument.Arguments;
 import de.seppl.sebfinance.argument.Arguments.EmptyFile;
+import de.seppl.sebfinance.kontoauszug.Kategorie;
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
 import de.seppl.sebfinance.kontoauszug.Lastschrift;
 import de.seppl.sebfinance.kontoauszug.Posten;
@@ -113,13 +116,19 @@ public class Main
     private static void printAuszuege(Collection<Kontoauszug> auszuege)
     {
         Collection<PrintableColumn<Posten>> columns = new ArrayList<>();
-        columns.add(new PrintableColumn<>("Valuta", e -> e.valuta().toString(), true));
         columns.add(new PrintableColumn<>("Betrag", e -> String.valueOf(e.betrag()) + " CHF", false));
         columns.add(new PrintableColumn<>("Kategorie", e -> e.kategorie().name(), true));
 
         auszuege.stream() //
             .map(auszug -> new ConsolePrinter<Posten>("Posten für " + auszug.monat(), columns,
-                auszug.posten())) //
+                reduce(auszug.posten()))) //
             .forEach(ConsolePrinter::print);
+    }
+
+    private static Collection<Posten> reduce(Collection<Posten> posten)
+    {
+        Map<Kategorie, List<Posten>> grouped = posten.stream() //
+            .collect(Collectors.groupingBy(Posten::kategorie));
+        return null;
     }
 }
