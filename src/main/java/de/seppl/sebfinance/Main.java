@@ -3,7 +3,6 @@ package de.seppl.sebfinance;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import de.seppl.sebfinance.argument.ArgumentParser;
@@ -11,11 +10,11 @@ import de.seppl.sebfinance.argument.Arguments;
 import de.seppl.sebfinance.argument.Arguments.EmptyFile;
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
 import de.seppl.sebfinance.kontoauszug.Lastschrift;
+import de.seppl.sebfinance.pdf.ContentParser;
 import de.seppl.sebfinance.pdf.ContentParserV1;
 import de.seppl.sebfinance.pdf.ContentParserV2;
 import de.seppl.sebfinance.pdf.KontoauszugParser;
 import de.seppl.sebfinance.pdf.PdfParser;
-import de.seppl.sebfinance.pdf.RawPdf;
 import de.seppl.sebfinance.print.ConsolePrinter;
 import de.seppl.sebfinance.print.Report;
 import de.seppl.sebfinance.print.Report.ReportLine;
@@ -34,6 +33,7 @@ public class Main
         Collection<ContentParser> contentParsers = Arrays.asList(//
             new ContentParserV1(), //
             new ContentParserV2());
+        KontoauszugParser kontoauszugParser = new KontoauszugParser(contentParsers);
 
         ReportBuilder reportBuilder = new ReportBuilder();
         ConsolePrinter<ReportLine> consolePrinter = new ConsolePrinter<>("Reportlines",
@@ -41,19 +41,9 @@ public class Main
 
         Collection<File> pdfs = files(arguments, argsParser);
 
-        Collection<Kontoauszug> auszuege = parse(pdfParser, contentParsers, pdfs);
+        Collection<Kontoauszug> auszuege = parse(pdfParser, kontoauszugParser, pdfs);
 
-        print(auszuege);
-
-        Collection<Report> reports = reportBuilder.sollReports(auszuege);
-
-        reports.stream().sorted().forEach(r -> {
-            System.out.println(r.auszug().monat());
-            consolePrinter.print(r.lines());
-
-            r.posten(Lastschrift.SONSTIGES).forEach(p -> System.out.println(p));
-            System.out.println("");
-        });
+        print(reportBuilder, consolePrinter, auszuege);
     }
 
     private static Collection<File> files(Arguments arguments, ArgumentParser argsParser)
@@ -74,44 +64,25 @@ public class Main
         return Arrays.asList(dir.listFiles());
     }
 
-    private static Optional<Kontoauszug> parse(PdfParser pdfParser,
-        Collection<KontoauszugParser> kontoauszugParsers, Collection<File> pdfs)
+    private static Collection<Kontoauszug> parse(PdfParser pdfParser,
+        KontoauszugParser kontoauszugParser, Collection<File> pdfs)
     {
-        Collection<RawPdf> raws = pdfs.stream() //
+        return pdfs.stream() //
             .map(pdfParser::raw) //
-            .collect(Collectors.toList());
-
-        kontoauszugParsers.stream() //
-        .map(mapper)
-        
-        Collection<String> content = pdfParser.raw(pdfs);
-        if (content.isEmpty())
-        {
-            System.err.println("Empty content: " + pdfs);
-            return Optional.empty();
-        }
-
-        for (ContentParser contentParser : contentParsers)
-        {
-            try
-            {
-                return Optional.of(contentParser.kontoauszug(content));
-            }
-            catch (IllegalStateException e)
-            {
-                if (!e.getMessage().equals("Keine Posten"))
-                    System.err.println(e.getMessage());
-            }
-        }
-        System.err.println("No fitting ContentParser found!");
-        return Optional.empty();
+            .map(kontoauszugParser::kontoauszug).collect(Collectors.toList());
     }
 
-    private static Kontoauszug kontoauszug(Collection<KontoauszugParser> kontoauszugParsers, RawPdf raw)
+    private static void print(ReportBuilder reportBuilder, ConsolePrinter<ReportLine> consolePrinter,
+        Collection<Kontoauszug> auszuege)
     {
-        kontoauszugParsers.stream() //
-            .map(p -> p.kontoauszug(rawPdf));
+        Collection<Report> reports = reportBuilder.sollReports(auszuege);
 
-        return null;
+        reports.stream().sorted().forEach(r -> {
+            System.out.println(r.auszug().monat());
+            consolePrinter.print(r.lines());
+
+            r.posten(Lastschrift.SONSTIGES).forEach(p -> System.out.println(p));
+            System.out.println("");
+        });
     }
 }
