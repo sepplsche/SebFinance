@@ -1,19 +1,18 @@
 package de.seppl.sebfinance;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 
+import static de.seppl.sebfinance.print.PrintableColumn.left;
+import static de.seppl.sebfinance.print.PrintableColumn.right;
+
 import de.seppl.sebfinance.argument.ArgumentParser;
 import de.seppl.sebfinance.argument.Arguments;
 import de.seppl.sebfinance.argument.Arguments.EmptyFile;
-import de.seppl.sebfinance.kontoauszug.Kategorie;
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
 import de.seppl.sebfinance.kontoauszug.Lastschrift;
 import de.seppl.sebfinance.kontoauszug.Posten;
@@ -24,9 +23,9 @@ import de.seppl.sebfinance.pdf.KontoauszugParser;
 import de.seppl.sebfinance.pdf.PdfParser;
 import de.seppl.sebfinance.print.ConsolePrinter;
 import de.seppl.sebfinance.print.PrintableColumn;
-import de.seppl.sebfinance.print.Report;
-import de.seppl.sebfinance.print.Report.ReportLine;
-import de.seppl.sebfinance.print.ReportBuilder;
+import de.seppl.sebfinance.report.Report;
+import de.seppl.sebfinance.report.ReportBuilder;
+import de.seppl.sebfinance.report.Report.ReportLine;
 
 
 public class Main
@@ -41,7 +40,7 @@ public class Main
 
     private static Collection<File> files(String[] args)
     {
-        System.out.println(String.format("reading arguments %s", StringUtils.join(args)));
+        System.out.println(String.format("reading arguments %s", StringUtils.join(args, " ")));
 
         Arguments arguments = new Arguments();
         ArgumentParser argsParser = new ArgumentParser(args);
@@ -55,7 +54,7 @@ public class Main
             File dir = argsParser.parse(arguments.dir());
 
             if (dir instanceof EmptyFile)
-                throw new IllegalArgumentException("No files found!");
+                throw new IllegalArgumentException("No files found in dir: " + dir);
 
             if (!dir.isDirectory())
                 throw new IllegalArgumentException("No direcory:" + dir);
@@ -115,20 +114,15 @@ public class Main
 
     private static void printAuszuege(Collection<Kontoauszug> auszuege)
     {
-        Collection<PrintableColumn<Posten>> columns = new ArrayList<>();
-        columns.add(new PrintableColumn<>("Betrag", e -> String.valueOf(e.betrag()) + " CHF", false));
-        columns.add(new PrintableColumn<>("Kategorie", e -> e.kategorie().name(), true));
+        Collection<PrintableColumn<Posten>> columns = Arrays.asList(
+            right("Betrag", e -> e.betrag() + " CHF"), //
+            left("Kategorie",
+                e -> e.kategorie().getClass().getSimpleName() + ":" + e.kategorie().name()));
 
         auszuege.stream() //
+            .sorted() //
             .map(auszug -> new ConsolePrinter<Posten>("Posten für " + auszug.monat(), columns,
-                reduce(auszug.posten()))) //
+                auszug.posten())) //
             .forEach(ConsolePrinter::print);
-    }
-
-    private static Collection<Posten> reduce(Collection<Posten> posten)
-    {
-        Map<Kategorie, List<Posten>> grouped = posten.stream() //
-            .collect(Collectors.groupingBy(Posten::kategorie));
-        return null;
     }
 }

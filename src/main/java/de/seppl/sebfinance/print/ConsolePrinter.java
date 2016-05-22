@@ -10,6 +10,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import de.seppl.sebfinance.print.PrintableColumn.Align;
+
 
 public class ConsolePrinter<T>
 {
@@ -98,7 +100,7 @@ public class ConsolePrinter<T>
     private void print(Collection<PrintableColumn<T>> columns, Collection<T> elements)
     {
         LinkedList<Column> headLine = columns.stream() //
-            .map(c -> new Column(c.head(), c.size(elements), c.left())) //
+            .map(c -> new Column(c.head(), c.size(elements), c.align())) //
             .collect(Collectors.toCollection(() -> new LinkedList<>()));
 
         Stream<LinkedList<Column>> lines = elements.stream() //
@@ -111,7 +113,7 @@ public class ConsolePrinter<T>
         Collection<T> elements)
     {
         return columns.stream() //
-            .map(c -> new Column(c.value(element), c.size(elements), c.left())) //
+            .map(c -> new Column(c.value(element), c.size(elements), c.align())) //
             .collect(Collectors.toCollection(() -> new LinkedList<>()));
     }
 
@@ -145,7 +147,7 @@ public class ConsolePrinter<T>
 
     private String printColumn(Column column, boolean lastColumn)
     {
-        return "|" + (column.left ? printLeftBound(column) : printRightBound(column))
+        return "|" + (column.align == Align.LEFT ? printLeftBound(column) : printRightBound(column))
             + (lastColumn ? "|" : "");
     }
 
@@ -163,13 +165,13 @@ public class ConsolePrinter<T>
     {
         private final String value;
         private final int size;
-        private final boolean left;
+        private final Align align;
 
-        public Column(String value, int size, boolean left)
+        public Column(String value, int size, Align align)
         {
             this.value = value;
             this.size = size;
-            this.left = left;
+            this.align = align;
         }
     }
 }

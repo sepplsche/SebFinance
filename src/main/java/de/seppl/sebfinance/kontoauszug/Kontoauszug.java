@@ -5,8 +5,8 @@ import java.util.Collection;
 
 
 public class Kontoauszug
+    implements Comparable<Kontoauszug>
 {
-
     private final LocalDate monat;
     private final Collection<Posten> posten;
 
@@ -24,5 +24,11 @@ public class Kontoauszug
     public Collection<Posten> posten()
     {
         return posten;
+    }
+
+    @Override
+    public int compareTo(Kontoauszug o)
+    {
+        return monat.compareTo(o.monat);
     }
 }

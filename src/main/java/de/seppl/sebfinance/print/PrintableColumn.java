@@ -6,33 +6,57 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class PrintableColumn<T> {
 
-	private final String head;
-	private final Function<T, String> columnToString;
-	private final boolean left;
+public final class PrintableColumn<T>
+{
+    private final String head;
+    private final Function<T, ?> column;
+    private final Align align;
 
-	public PrintableColumn(String head, Function<T, String> columnToString, boolean left) {
-		this.head = head;
-		this.columnToString = columnToString;
-		this.left = left;
-	}
+    private PrintableColumn(String head, Function<T, ?> column, Align align)
+    {
+        this.head = head;
+        this.column = column;
+        this.align = align;
+    }
 
-	public String head() {
-		return head;
-	}
+    public static <T> PrintableColumn<T> right(String head, Function<T, ?> columnToString)
+    {
+        return new PrintableColumn<>(head, columnToString, Align.RIGHT);
+    }
 
-	public String value(T element) {
-		return columnToString.apply(element);
-	}
+    public static <T> PrintableColumn<T> left(String head, Function<T, ?> columnToString)
+    {
+        return new PrintableColumn<>(head, columnToString, Align.LEFT);
+    }
 
-	public int size(Collection<T> elements) {
-		List<String> strings = new ArrayList<>(elements.stream().map(columnToString).collect(Collectors.toList()));
-		strings.add(head);
-		return strings.stream().mapToInt(s -> s.length()).max().orElse(0);
-	}
+    public String head()
+    {
+        return head;
+    }
 
-	public boolean left() {
-		return left;
-	}
+    public String value(T element)
+    {
+        return String.valueOf(column.apply(element));
+    }
+
+    public int size(Collection<T> elements)
+    {
+        List<String> strings = new ArrayList<>(elements.stream() //
+            .map(column) //
+            .map(String::valueOf) //
+            .collect(Collectors.toList()));
+        strings.add(head);
+        return strings.stream().mapToInt(s -> s.length()).max().orElse(0);
+    }
+
+    public Align align()
+    {
+        return align;
+    }
+
+    public static enum Align
+    {
+        LEFT, RIGHT;
+    }
 }

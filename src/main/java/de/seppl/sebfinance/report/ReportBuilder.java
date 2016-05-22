@@ -1,4 +1,4 @@
-package de.seppl.sebfinance.print;
+package de.seppl.sebfinance.report;
 
 import java.time.LocalDate;
 import java.util.Collection;
