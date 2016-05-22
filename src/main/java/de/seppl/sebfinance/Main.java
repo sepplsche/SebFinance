@@ -66,7 +66,7 @@ public class Main
     private static void printAuszuege(Collection<Kontoauszug> auszuege)
     {
         Collection<PrintableColumn<Posten>> columns = Arrays.asList(
-            right("Betrag", e -> e.gutschrift() ? "+" : "-" + e.betrag() + " CHF"), //
+            right("Betrag", e -> (e.gutschrift() ? "+" : "-") + e.betrag() + " CHF"), //
             left("Kategorie", e -> e.kategorie().name()), //
             left("Beschreibung",
                 e -> e.kategorie().equals(Lastschrift.SONSTIGES) ? e.verwendung() : ""));
