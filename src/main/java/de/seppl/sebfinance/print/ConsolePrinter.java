@@ -1,103 +1,25 @@
 package de.seppl.sebfinance.print;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.google.common.collect.ImmutableList;
 
 import de.seppl.sebfinance.print.PrintableColumn.Align;
 
 
 public class ConsolePrinter<T>
 {
-
-    private final ScheduledThreadPoolExecutor executor;
-    private final String elementsName;
     private final Collection<PrintableColumn<T>> columns;
-    private final Collection<T> elements;
 
-    public ConsolePrinter(String elementsName, Collection<PrintableColumn<T>> columns,
-        Collection<T> elements)
+    public ConsolePrinter(Collection<PrintableColumn<T>> columns)
     {
-        this.elementsName = elementsName;
-        this.columns = columns;
-        this.elements = elements;
-        executor = new ScheduledThreadPoolExecutor(2);
-    }
-
-    public ConsolePrinter(String elementsName, Collection<PrintableColumn<T>> columns)
-    {
-        this(elementsName, columns, Collections.emptyList());
-    }
-
-    public void print()
-    {
-        if (elements.isEmpty())
-            System.out.println("nothing to print");
-        print(elements);
+        this.columns = ImmutableList.copyOf(columns);
     }
 
     public void print(Collection<T> elements)
-    {
-        System.out.println(String.format("printing %s %s:", elements.size(), elementsName));
-
-        print(columns, elements.stream().sorted().collect(Collectors.toList()));
-    }
-
-    public void print(Callable<Collection<T>> domainCall)
-    {
-        Future<Collection<T>> elementsFuture = executor.submit(domainCall);
-        waitForElements(elementsFuture);
-        try
-        {
-            Collection<T> elements = elementsFuture.get();
-            if (elements.isEmpty())
-            {
-                System.out.println(String.format("No %s found!", elementsName));
-                return;
-            }
-            int foundSize = elements.size();
-            elements = applyAdditionalOperations(elements);
-            int actualSize = elements.size();
-            System.out.println(String.format("%d %s gefunden, %d %s aufgelistet", //
-                foundSize, elementsName, actualSize, elementsName));
-            print(columns, elements);
-        }
-        catch (InterruptedException | ExecutionException e)
-        {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private void waitForElements(Future<Collection<T>> elementsFuture)
-    {
-        System.out.print("Calulating " + elementsName);
-        while (!elementsFuture.isDone())
-        {
-            System.out.print(".");
-            try
-            {
-                Thread.sleep(100);
-            }
-            catch (InterruptedException e)
-            {
-                // ignore
-            }
-        }
-        System.out.println();
-    }
-
-    protected Collection<T> applyAdditionalOperations(Collection<T> elements)
-    {
-        return elements;
-    }
-
-    private void print(Collection<PrintableColumn<T>> columns, Collection<T> elements)
     {
         LinkedList<Column> headLine = columns.stream() //
             .map(c -> new Column(c.head(), c.size(elements), c.align())) //

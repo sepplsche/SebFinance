@@ -1,33 +1,33 @@
 package de.seppl.sebfinance.argument;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
-import de.seppl.sebfinance.argument.Argument.OptionalArgument;
+import static java.util.stream.Collectors.toList;
 
-public class Arguments {
+import de.seppl.sebfinance.argument.Argument.MandatoryArgument;
 
-	public Argument<File> pdf() {
-		return new OptionalArgument<File>("-pdf", (a -> argToFile(a)), new EmptyFile());
-	}
 
-	public Argument<File> dir() {
-		return new OptionalArgument<File>("-dir", (a -> argToFile(a)), new EmptyFile());
-	}
+public class Arguments
+{
+    public Argument<Collection<File>> files()
+    {
+        return new MandatoryArgument<>("-f", (a -> argToFiles(a)));
+    }
 
-	private File argToFile(Stream<String> arg) {
-		return arg //
-				.map(a -> new File(a)) //
-				.findFirst() //
-				.get();
-	}
+    private Collection<File> argToFiles(Stream<String> arg)
+    {
+        List<File> files = arg.map(a -> new File(a)).collect(toList());
 
-	public static class EmptyFile extends File {
+        Collection<File> pdfs = files.stream().filter(File::isFile).collect(toList());
 
-		private static final long serialVersionUID = 1L;
+        pdfs.addAll(files.stream() //
+            .filter(File::isDirectory) //
+            .flatMap(dir -> Stream.of(dir.listFiles())) //
+            .collect(toList()));
 
-		public EmptyFile() {
-			super("emptyFile");
-		}
-	}
+        return pdfs;
+    }
 }
