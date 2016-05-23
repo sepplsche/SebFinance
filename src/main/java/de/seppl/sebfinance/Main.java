@@ -9,9 +9,6 @@ import static java.util.stream.Collectors.toList;
 
 import org.apache.commons.lang.StringUtils;
 
-import static de.seppl.sebfinance.print.PrintableColumn.left;
-import static de.seppl.sebfinance.print.PrintableColumn.right;
-
 import de.seppl.sebfinance.argument.ArgumentParser;
 import de.seppl.sebfinance.argument.Arguments;
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
@@ -24,6 +21,9 @@ import de.seppl.sebfinance.pdf.KontoauszugParser;
 import de.seppl.sebfinance.pdf.PdfParser;
 import de.seppl.sebfinance.print.ConsolePrinter;
 import de.seppl.sebfinance.print.PrintableColumn;
+
+import static de.seppl.sebfinance.print.PrintableColumn.left;
+import static de.seppl.sebfinance.print.PrintableColumn.right;
 
 
 public class Main
@@ -65,25 +65,40 @@ public class Main
 
     private static void printAuszuege(Collection<Kontoauszug> auszuege)
     {
-        Collection<PrintableColumn<Posten>> columns = Arrays.asList(
-            right("Betrag", e -> (e.gutschrift() ? "+" : "-") + e.betrag() + " CHF"), //
-            left("Kategorie", e -> e.kategorie().name()), //
-            left("Beschreibung",
-                e -> e.kategorie().equals(Lastschrift.SONSTIGES) ? e.verwendung() : ""));
+        Collection<PrintableColumn<Posten>> columns = Arrays
+            .asList(
+                right("Betrag", e -> (e.gutschrift() ? "+" : "-") + e.betrag() + " CHF"), //
+                left("Kategorie", e -> e.kategorie().name()), //
+                left("Beschreibung", e -> e.kategorie().equals(Lastschrift.SONSTIGES) ? e.verwendung()
+                    : ""));
 
         ConsolePrinter<Posten> printer = new ConsolePrinter<>(columns);
 
         auszuege.stream() //
-            .sorted() //
-            .forEach(auszug -> {
-                System.out.println(
-                    String.format("%s Posten für '%s':", auszug.posten().size(), auszug.monat()));
+            .sorted()
+            //
+            .forEach(
+                auszug -> {
+                    System.out.println(String.format("%s Posten für '%s':", auszug.posten().size(),
+                        auszug.monat()));
 
-                Collection<Posten> posten = auszug.posten().stream() //
-                    .sorted((a, b) -> a.kategorie().name().compareTo(b.kategorie().name())) //
-                    .collect(toList());
+                    Collection<Posten> posten = auszug.posten().stream() //
+                        .sorted((a, b) -> compare(a, b)) //
+                        .collect(toList());
 
-                printer.print(posten);
-            });
+                    printer.print(posten);
+                });
+    }
+
+    private static int compare(Posten a, Posten b)
+    {
+        int compKatClass = a.kategorie().getClass().getSimpleName()
+            .compareTo(b.kategorie().getClass().getSimpleName());
+        if (compKatClass != 0)
+            return compKatClass;
+        int compKat = a.kategorie().name().compareTo(b.kategorie().name());
+        if (compKat != 0)
+            return compKat;
+        return a.betrag() - b.betrag();
     }
 }

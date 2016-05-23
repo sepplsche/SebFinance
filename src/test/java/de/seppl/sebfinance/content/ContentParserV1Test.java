@@ -20,13 +20,35 @@ import de.seppl.sebfinance.pdf.RawPdf;
 public class ContentParserV1Test
 {
     @Test
-    public void parse() throws Exception
+    public void parse200606() throws Exception
     {
         RawPdf raw = raw("rep304302916_20060601_p1285.pdf");
         ContentParser parser = new ContentParserV1();
 
         assertThat(parser.monat(raw), equalTo(LocalDate.of(2006, 5, 31)));
         assertThat(parser.posten(raw).size(), is(8));
+    }
+
+    @Test
+    public void parse200610() throws Exception
+    {
+        RawPdf raw = raw("rep304302916_20061101_p4296.pdf");
+
+        ContentParser parser = new ContentParserV1();
+
+        assertThat(parser.monat(raw), equalTo(LocalDate.of(2006, 10, 31)));
+        assertThat(parser.posten(raw).size(), is(21));
+    }
+
+    @Test
+    public void parse200802() throws Exception
+    {
+        RawPdf raw = raw("rep304302916_20080229_p1783.pdf");
+
+        ContentParser parser = new ContentParserV1();
+
+        assertThat(parser.monat(raw), equalTo(LocalDate.of(2008, 2, 29)));
+        assertThat(parser.posten(raw).size(), is(4));
     }
 
     private RawPdf raw(String pdfFileName)

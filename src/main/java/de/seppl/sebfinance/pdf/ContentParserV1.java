@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.seppl.sebfinance.kontoauszug.Kategorie;
 import de.seppl.sebfinance.kontoauszug.Posten;
@@ -14,6 +16,8 @@ import de.seppl.sebfinance.kontoauszug.Posten;
 public class ContentParserV1
     implements ContentParser
 {
+    private static final Logger log = LoggerFactory.getLogger(ContentParserV1.class);
+
     private static final String MARKER_MONAT_START = "Kontoauszug ";
     private static final String MARKER_MONAT_BIS = " - ";
     private static final String MARKER_MONAT_END = " Kontonummer";
@@ -49,8 +53,8 @@ public class ContentParserV1
         boolean isForPosten = false;
         for (String line : content)
         {
-            if (line.contains(MARKER_POSTEN_PAGE_END) //
-                || line.contains(MARKER_POSTEN_PAGE_LAST_END))
+            if (line.startsWith(MARKER_POSTEN_PAGE_END) //
+                || line.endsWith(MARKER_POSTEN_PAGE_LAST_END))
                 isForPosten = false;
 
             if (isForPosten)
@@ -61,7 +65,7 @@ public class ContentParserV1
                 firstPage = false;
                 isForPosten = true;
             }
-            if (!firstPage && line.contains(MARKER_POSTEN_PAGE_NEXT_BEGIN))
+            if (!firstPage && line.equals(MARKER_POSTEN_PAGE_NEXT_BEGIN))
                 isForPosten = true;
         }
         return postenLines;
@@ -84,7 +88,7 @@ public class ContentParserV1
                 String date = StringUtils.substringAfter(line, ".").substring(3, 11);
                 LocalDate valuta = LocalDate.parse(date, DateTimeFormatter.ofPattern("dd.MM.uu"));
 
-                if (lastValuta != null && betrag > 0)
+                if (lastValuta != null && lastBetrag > 0)
                 {
                     String verwendung = StringUtils.join(realPostenLines, " ");
                     Kategorie kategorie = Kategorie.of(verwendung);
@@ -102,12 +106,15 @@ public class ContentParserV1
             realPostenLines.add(line);
         }
 
-        if (lastValuta != null)
+        if (lastValuta != null && lastBetrag > 0)
         {
             String verwendung = StringUtils.join(realPostenLines, " ");
             Kategorie kategorie = Kategorie.of(verwendung);
             posten.add(new Posten(lastValuta, lastBetrag, kategorie, verwendung));
         }
+
+        log.debug(posten.stream().map(Posten::toString)
+            .reduce("", (a, b) -> a + System.lineSeparator() + b));
 
         return posten;
     }
