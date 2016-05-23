@@ -1,91 +1,79 @@
 package de.seppl.sebfinance.argument;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.apache.commons.lang.StringUtils;
 
 import de.seppl.sebfinance.argument.Argument.MandatoryArgument;
 import de.seppl.sebfinance.argument.Argument.OptionalArgument;
 
+public class ArgumentParser {
 
-public class ArgumentParser
-{
+    private final Map<String, List<String>> args;
 
-    private final Map<String, Stream<String>> args;
-
-    public ArgumentParser(String[] args)
-    {
-        String joinedArgs = StringUtils.join(args, " ");
-        String[] splitArgs = StringUtils.split(joinedArgs, "-");
-
-        this.args = Stream.of(splitArgs) //
-            .map(a -> createDashArg(a)) //
-            .collect(
-                Collectors.toMap(DashArg::param, DashArg::values, (v1, v2) -> Stream.concat(v1, v2)));
+    public ArgumentParser(String[] args) {
+        this.args = parse(args);
     }
 
-    private DashArg createDashArg(String args)
-    {
-        String param = "-" + StringUtils.substringBefore(args, " ");
-        String valuesStr = StringUtils.substringAfter(args, " ");
-        String[] values = StringUtils.split(valuesStr, ",");
-        return new DashArg(param, Stream.of(values));
-    }
+    private Map<String, List<String>> parse(String[] args) {
+        Map<String, List<String>> argsMap = new HashMap<>();
 
-    public <T> T parse(Argument<T> definedArg)
-    {
-        Optional<T> arg = Optional.ofNullable(args.get(definedArg.param())) //
-            .map(definedArg.converter()) //
-            .filter(a -> filterNullOrEmpty(a));
+        String lastArg = null;
+        List<String> lastParams = new ArrayList<>();
 
-        if (definedArg instanceof MandatoryArgument)
-        {
-            MandatoryArgument<T> mandatoryParam = (MandatoryArgument<T>) definedArg;
-            return arg
-                .orElseThrow(() -> new IllegalArgumentException(mandatoryParam.exceptionMessage()));
+        for (String arg : args) {
+            if (arg.startsWith("-")) {
+                if (lastArg != null && !lastParams.isEmpty()) {
+                    List<String> params = argsMap.get(lastArg);
+                    if (params == null) {
+                        argsMap.put(lastArg, new ArrayList<>(lastParams));
+                    } else {
+                        params.addAll(new ArrayList<>(lastParams));
+                    }
+                }
+                lastArg = arg;
+                lastParams.clear();
+            } else if (lastArg != null) {
+                lastParams.add(arg);
+            } else {
+                // ignore
+            }
         }
-        else if (definedArg instanceof OptionalArgument)
-        {
+        if (lastArg != null && !lastParams.isEmpty()) {
+            List<String> params = argsMap.get(lastArg);
+            if (params == null) {
+                argsMap.put(lastArg, new ArrayList<>(lastParams));
+            } else {
+                params.addAll(new ArrayList<>(lastParams));
+            }
+        }
+        return argsMap;
+    }
+
+    public <T> T parse(Argument<T> definedArg) {
+        Optional<T> arg = Optional.ofNullable(args.get(definedArg.param())) //
+                .map(definedArg.converter()) //
+                .filter(a -> filterNullOrEmpty(a));
+
+        if (definedArg instanceof MandatoryArgument) {
+            MandatoryArgument<T> mandatoryParam = (MandatoryArgument<T>) definedArg;
+            return arg.orElseThrow(() -> new IllegalArgumentException(mandatoryParam.exceptionMessage()));
+        } else if (definedArg instanceof OptionalArgument) {
             OptionalArgument<T> optionalParam = (OptionalArgument<T>) definedArg;
             return arg.orElse(optionalParam.defaultValue());
         }
         throw new IllegalStateException("Unbekannte ArgumentClass: " + definedArg.getClass());
     }
 
-    private <T> boolean filterNullOrEmpty(T value)
-    {
+    private <T> boolean filterNullOrEmpty(T value) {
         if (value == null)
             return false;
-        if (value instanceof Collection<?>)
-        {
+        if (value instanceof Collection<?>) {
             return !((Collection<?>) value).isEmpty();
         }
         return true;
-    }
-
-    private static class DashArg
-    {
-        private final String param;
-        private final Stream<String> values;
-
-        private DashArg(String param, Stream<String> values)
-        {
-            this.param = param;
-            this.values = values;
-        }
-
-        public String param()
-        {
-            return param;
-        }
-
-        public Stream<String> values()
-        {
-            return values;
-        }
     }
 }
