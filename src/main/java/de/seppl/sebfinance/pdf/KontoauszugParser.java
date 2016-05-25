@@ -18,13 +18,16 @@ public class KontoauszugParser {
         this.date = checkNotNull(date);
     }
 
+    public boolean filter(RawPdf raw) {
+        return parsers.stream() //
+                .map(parser -> parser.monat(raw)) //
+                .anyMatch(monat -> monat.isAfter(date));
+    }
+
     public Kontoauszug kontoauszug(RawPdf raw) {
         Collection<Kontoauszug> auszuege = new ArrayList<>();
         parsers.forEach(parser -> {
             LocalDate monat = parser.monat(raw);
-            if (monat.isBefore(date))
-                return;
-
             Collection<Posten> posten = parser.posten(raw);
             if (posten.isEmpty())
                 return;

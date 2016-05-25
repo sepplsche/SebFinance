@@ -13,7 +13,6 @@ import org.apache.commons.lang.StringUtils;
 import de.seppl.sebfinance.argument.ArgumentParser;
 import de.seppl.sebfinance.argument.Arguments;
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
-import de.seppl.sebfinance.kontoauszug.Lastschrift;
 import de.seppl.sebfinance.kontoauszug.Posten;
 import de.seppl.sebfinance.pdf.ContentParser;
 import de.seppl.sebfinance.pdf.ContentParserV1;
@@ -49,8 +48,9 @@ public class Main {
         KontoauszugParser kontoauszugParser = new KontoauszugParser(contentParsers, date);
 
         return pdfs.stream() //
-                .filter(pdf -> pdf.getName().startsWith("rep")) //
+                .filter(pdf -> pdf.getName().startsWith("rep304302916")) //
                 .map(pdfParser::raw) //
+                .filter(kontoauszugParser::filter) //
                 .map(kontoauszugParser::kontoauszug) //
                 .collect(Collectors.toList());
     }
@@ -58,8 +58,7 @@ public class Main {
     private static void printAuszuege(Collection<Kontoauszug> auszuege) {
         Collection<PrintableColumn<Posten>> columns =
                 Arrays.asList(right("Betrag", e -> (e.gutschrift() ? "+" : "-") + e.betrag() + " CHF"), //
-                        left("Kategorie", e -> e.kategorie().name()), //
-                        left("Beschreibung", e -> e.kategorie().equals(Lastschrift.SONSTIGES) ? e.verwendung() : ""));
+                        left("Kategorie", e -> e.kategorie().name()));
 
         ConsolePrinter<Posten> printer = new ConsolePrinter<>(columns);
 

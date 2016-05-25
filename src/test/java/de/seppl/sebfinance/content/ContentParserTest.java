@@ -13,15 +13,13 @@ import static org.junit.Assert.assertThat;
 
 import de.seppl.sebfinance.pdf.ContentParser;
 import de.seppl.sebfinance.pdf.ContentParserV1;
+import de.seppl.sebfinance.pdf.ContentParserV2;
 import de.seppl.sebfinance.pdf.PdfParser;
 import de.seppl.sebfinance.pdf.RawPdf;
 
-
-public class ContentParserV1Test
-{
+public class ContentParserTest {
     @Test
-    public void parse200606() throws Exception
-    {
+    public void parse200606() throws Exception {
         RawPdf raw = raw("rep304302916_20060601_p1285.pdf");
         ContentParser parser = new ContentParserV1();
 
@@ -30,8 +28,7 @@ public class ContentParserV1Test
     }
 
     @Test
-    public void parse200610() throws Exception
-    {
+    public void parse200610() throws Exception {
         RawPdf raw = raw("rep304302916_20061101_p4296.pdf");
 
         ContentParser parser = new ContentParserV1();
@@ -41,8 +38,7 @@ public class ContentParserV1Test
     }
 
     @Test
-    public void parse200802() throws Exception
-    {
+    public void parse200802() throws Exception {
         RawPdf raw = raw("rep304302916_20080229_p1783.pdf");
 
         ContentParser parser = new ContentParserV1();
@@ -51,17 +47,23 @@ public class ContentParserV1Test
         assertThat(parser.posten(raw).size(), is(4));
     }
 
-    private RawPdf raw(String pdfFileName)
-    {
-        try
-        {
+    @Test
+    public void parse201401() throws Exception {
+        RawPdf raw = raw("rep304302916_20140101_p2167.pdf");
+
+        ContentParser parser = new ContentParserV2();
+
+        assertThat(parser.monat(raw), equalTo(LocalDate.of(2013, 12, 31)));
+        assertThat(parser.posten(raw).size(), is(25));
+    }
+
+    private RawPdf raw(String pdfFileName) {
+        try {
             URL url = getClass().getResource(pdfFileName);
             File pdf = new File(url.toURI());
             PdfParser parser = new PdfParser();
             return parser.raw(pdf);
-        }
-        catch (URISyntaxException e)
-        {
+        } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
         }
     }
