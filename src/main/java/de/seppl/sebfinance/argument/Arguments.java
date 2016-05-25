@@ -20,8 +20,8 @@ public class Arguments {
         return new OptionalArgument<>("-d", (a -> argToDate(a)), LocalDate.of(2006, 1, 1));
     }
 
-    private Collection<File> argToFiles(Stream<String> arg) {
-        List<File> files = arg.map(a -> new File(a)).collect(toList());
+    private Collection<File> argToFiles(List<String> arg) {
+        List<File> files = arg.stream().map(a -> new File(a)).collect(toList());
 
         Collection<File> pdfs = files.stream().filter(File::isFile).collect(toList());
 
@@ -33,7 +33,7 @@ public class Arguments {
         return pdfs;
     }
 
-    private LocalDate argToDate(Stream<String> arg) {
-        return arg.map(a -> LocalDate.parse(a/* , DateTimeFormatter.ofPattern("dd.MM.uuuu") */)).findFirst().get();
+    private LocalDate argToDate(List<String> arg) {
+        return arg.stream().map(a -> LocalDate.parse(a)).findFirst().get();
     }
 }
