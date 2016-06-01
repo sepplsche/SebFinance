@@ -14,9 +14,6 @@ public class PdfParser {
     private static final Logger log = LoggerFactory.getLogger(PdfParser.class);
 
     public RawPdf raw(File pdf) {
-        if (!pdf.getName().startsWith("rep"))
-            throw new IllegalArgumentException("wrong file: " + pdf);
-
         PDDocument document = null;
         try {
             document = PDDocument.load(pdf);
@@ -26,7 +23,7 @@ public class PdfParser {
             log.debug(content);
 
             String[] lines = StringUtils.split(content, System.lineSeparator());
-            return new RawPdf(Arrays.asList(lines));
+            return new RawPdf(pdf.getName(), Arrays.asList(lines));
         } catch (IOException e) {
             throw new IllegalStateException(e);
         } finally {

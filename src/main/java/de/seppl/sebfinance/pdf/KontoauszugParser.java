@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.apache.commons.lang.StringUtils;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
@@ -11,17 +13,9 @@ import de.seppl.sebfinance.kontoauszug.Posten;
 
 public class KontoauszugParser {
     private final Collection<ContentParser> parsers;
-    private final LocalDate date;
 
-    public KontoauszugParser(Collection<ContentParser> parsers, LocalDate date) {
+    public KontoauszugParser(Collection<ContentParser> parsers) {
         this.parsers = checkNotNull(parsers);
-        this.date = checkNotNull(date);
-    }
-
-    public boolean filter(RawPdf raw) {
-        return parsers.stream() //
-                .map(parser -> parser.monat(raw)) //
-                .anyMatch(monat -> monat.isAfter(date));
     }
 
     public Kontoauszug kontoauszug(RawPdf raw) {
@@ -31,10 +25,14 @@ public class KontoauszugParser {
             Collection<Posten> posten = parser.posten(raw);
             if (posten.isEmpty())
                 return;
-            auszuege.add(new Kontoauszug(monat, posten));
+            auszuege.add(new Kontoauszug(monat, konto(raw), posten));
         });
         if (auszuege.isEmpty())
             throw new IllegalStateException("Kein Kontoauszug für Raw-PDF: " + raw.lines());
         return auszuege.iterator().next();
+    }
+
+    private String konto(RawPdf raw) {
+        return StringUtils.substringAfter(StringUtils.substringBefore(raw.fileName(), "_"), "rep");
     }
 }

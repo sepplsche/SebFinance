@@ -34,6 +34,7 @@ public enum Lastschrift implements Kategorie {
             "GALAXUS", //
             "DIGITEC", //
             "GRAKA", //
+            "LAPTOP UND W-LAN-ROUTER", //
             "PC HIGH", //
             "CONRAD", //
             "CAMERA", //
@@ -42,26 +43,31 @@ public enum Lastschrift implements Kategorie {
             "MEDIAMARKT", //
             "MEDIA MARKT"), //
     KONTOAUSGLEICH(//
-            "YELLOWNET 30-579188-8 PETRISHKA MARIANA ILIEVA", //
-            "E-FINANCE 30-579188-8 PETRISHKA MARIANA ILIEVA", //
-            "ÜBERTRAG AUF KONTO 92-285988-7"), //
+            "YELLOWNET 30-579188-8", //
+            "E-FINANCE 30-579188-8", //
+            "E-FINANCE 30-474825-1", //
+            "ÜBERTRAG AUF KONTO 30-474825-1"), //
     STROM(//
             "BKW ENERGIE", //
             "STROM"), //
     TRADE(//
             "BANKENGIRO 5246.79.99", //
             "E-TRADING", //
+            "FONDSANTEILEN", //
             "AUFTRAG 1 TRANSAKTION(EN)"), //
     INTERNET_TV(//
             "BILLAG", //
             "INTERNET TV", //
+            "INTERNETTV", //
             "CABLECOM"), //
     SKI_VELO(//
             "ZWEISIMMEN", //
             "WENGEN", //
             "ADELBODEN", //
             "MÜRREN", //
+            "SKITESTWE", //
             "SKI-UND VELO-CENTER", //
+            "MOTO-CENTER BERN", //
             "SAANENMÖSER", //
             "SCHALLER VELOS", //
             "LENK", //
@@ -77,6 +83,9 @@ public enum Lastschrift implements Kategorie {
             "FAHRERPRÜFUNG", //
             "STEINSCHLAG", //
             "PARKEN", //
+            "VERS. ROLLER", //
+            "VERS. AUTO", //
+            "VERKEHRSSTARFE", //
             "AUTOGRILL", //
             "ARTHUR FEGBLI", //
             "AUTO MAKEUP", //
@@ -84,9 +93,11 @@ public enum Lastschrift implements Kategorie {
             "AUTO SERVICE", //
             "TREIBSTOFF", //
             "STOSSSTANGE", //
+            "BERN AUTO", //
             "ZU SCHNELL", //
             "WAB1", //
             "JAJA 28.10.08", //
+            "ORDNUNGSBUSSEN", //
             "STEUER AUTO", //
             "AUTO STEUER", //
             "AUTO MARTI", //
@@ -98,9 +109,16 @@ public enum Lastschrift implements Kategorie {
             "ZÜRITEL", //
             "DREHZAHLGEBER", //
             "FAHRSCHULE", //
+            "BÄRTSCHI KURT", //
             "ORDNUNGSBUSSEN BERN STRAFE", //
+            "AUTO SPIEGEL", //
             "AUTO-ZENTRUM", //
+            "L-AUSWEIS", //
+            "ROLLERGRUNDKURS", //
+            "ROLLERVERS", //
+            "WAB2", //
             "OSTERMUNDIGEN GEBÜHR BETR.AUSZ", //
+            "AUTO ÖL", //
             "SCHULTHESS", //
             "FAHRAUSWEIS MARY", //
             "AMAG", //
@@ -131,12 +149,21 @@ public enum Lastschrift implements Kategorie {
             "APOTHEKE", //
             "SPITEX", //
             "KRÜCKEN", //
+            "M. ENDO", //
             "CRYOSAFE", //
             "ARZT", //
             "VISANA", //
+            "DR. MED.", //
             "SWICA", //
+            "DR.WIRZ", //
             "KLINIK", //
+            "OPTIK BERN", //
+            "SONNENHOF", //
+            "AKKUPUNKTUR", //
+            "LABOR", //
+            "CITY NOTFALL", //
             "INSELSPITAL", //
+            "GASTROSKOPIE", //
             "AMBULANZ", //
             "GEBURT", //
             "SANA24", //
@@ -147,12 +174,16 @@ public enum Lastschrift implements Kategorie {
             "ARTZT"), //
     STEUERN(//
             "STEUERVERWALTUNG"), //
-    FLUG(//
+    FERIEN(//
             "BG-TICKET", //
             "UMBUCHUNGSGEBÜHR", //
+            "BULGARIA AIR", //
+            "MONZA", //
             "FLUG", //
+            "BEATUSHÖHLEN", //
             "ISE TICKET", //
             "TENERIFFA", //
+            "MIETAUTO", //
             "NELI"), //
     RESTAURANT(//
             "PAPA JOE", //
@@ -168,7 +199,11 @@ public enum Lastschrift implements Kategorie {
             "MAXI MARKT", //
             "MERKUR CONFISERIEN", //
             "SPAR SUPERMARKT", //
+            "KKIOSK", //
+            "MIGROL BE EGGHÖLZLI BERN WAREN", //
             "COOP TS GÜMLIGEN GÜMLIGEN WAREN", //
+            "COOP MINERALOEL AG MÜNSINGEN WAREN", //
+            "BP SERVICE HOLLIGEN BERN WAREN", //
             "COOP-3315", //
             "COOP-5026", //
             "COOP-1390", //
@@ -193,7 +228,10 @@ public enum Lastschrift implements Kategorie {
     SPAREN(//
             "ÜBERTRAG AUF KONTO 92-532048-6", //
             "AUTOMATISCHE ABDISPOSITION", //
-            "ERSTEINLAGE 03.04.08"), //
+            "ERSTEINLAGE", //
+            "ÜBERTRAG AUF KONTO 92-285988-7", //
+            "E-FINANCE 92-532048-6", //
+            "FÜR ISIS WOHNUNG"), //
     TELEFON(//
             "ORANGE", //
             "SKYPE", //
