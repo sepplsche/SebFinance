@@ -57,6 +57,16 @@ public class ContentParserTest {
         assertThat(parser.posten(raw).size(), is(25));
     }
 
+    @Test
+    public void parseMary201402() throws Exception {
+        RawPdf raw = raw("rep302302056_20140131_p5979.pdf");
+
+        ContentParser parser = new ContentParserV2();
+
+        assertThat(parser.monat(raw), equalTo(LocalDate.of(2014, 01, 31)));
+        assertThat(parser.posten(raw).size(), is(17));
+    }
+
     private RawPdf raw(String pdfFileName) {
         try {
             URL url = getClass().getResource(pdfFileName);

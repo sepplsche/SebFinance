@@ -44,9 +44,10 @@ public class ContentParserV2 implements ContentParser {
         boolean firstPage = true;
         boolean isForPosten = false;
         for (String line : content) {
-            if (line.contains(MARKER_POSTEN_PAGE_END) //
-                    || line.contains(MARKER_POSTEN_PAGE_LAST_END))
+            if (line.contains(MARKER_POSTEN_PAGE_END))
                 isForPosten = false;
+            if (line.contains(MARKER_POSTEN_PAGE_LAST_END))
+                break;
 
             if (isForPosten)
                 postenLines.add(line);

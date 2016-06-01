@@ -4,6 +4,7 @@ import java.io.File;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
@@ -14,6 +15,7 @@ import static de.seppl.sebfinance.print.PrintableColumn.right;
 
 import de.seppl.sebfinance.argument.ArgumentParser;
 import de.seppl.sebfinance.argument.Arguments;
+import de.seppl.sebfinance.kontoauszug.Gutschrift;
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
 import de.seppl.sebfinance.kontoauszug.Posten;
 import de.seppl.sebfinance.pdf.ContentParser;
@@ -60,7 +62,16 @@ public class Main {
         return auszuege.stream() //
                 .filter(auszug -> auszug.monat().isAfter(date)) //
                 .filter(auszug -> filter(mode, auszug.posten())) //
+                // .filter(Main::filter) //
                 .collect(toList());
+    }
+
+    @SuppressWarnings("unused")
+    private static boolean filter(Kontoauszug auszug) {
+        List<Posten> posten = auszug.posten().stream() //
+                .filter(p -> p.kategorie() == Gutschrift.GEHALT) //
+                .collect(toList());
+        return posten.size() > 1;
     }
 
     private static boolean filter(Mode mode, Collection<Posten> postens) {
