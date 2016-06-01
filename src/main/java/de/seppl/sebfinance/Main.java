@@ -41,6 +41,8 @@ public class Main {
         System.out.println(String.format("filtering %s Kontoauszüge...", auszuege.size()));
         auszuege = filter(auszuege, date, mode);
 
+        auszuege = reduce(auszuege);
+
         System.out.println(String.format("printing %s Kontoauszüge...", auszuege.size()));
         printAuszuege(auszuege);
     }
