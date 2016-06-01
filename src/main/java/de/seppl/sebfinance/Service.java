@@ -118,5 +118,4 @@ public class Service {
             return compKat;
         return a.betrag() - b.betrag();
     }
-
 }
