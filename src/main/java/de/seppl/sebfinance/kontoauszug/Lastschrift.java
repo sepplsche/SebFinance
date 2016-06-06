@@ -185,15 +185,14 @@ public enum Lastschrift implements Kategorie {
             "TENERIFFA", //
             "MIETAUTO", //
             "NELI"), //
-    RESTAURANT(//
+    VERPFLEGUNG(//
             "PAPA JOE", //
             "BURGER KING", //
             "DESPERADO", //
             "MR. PICKWICK", //
             "ROSENGARTEN GASTRO", //
             "HOTEL NATIONAL BERN", //
-            "RESTAURANT"), //
-    VERPFLEGUNG(//
+            "RESTAURANT", //
             "ALDI", //
             "MAXI MARKET ZEKA", //
             "MAXI MARKT", //

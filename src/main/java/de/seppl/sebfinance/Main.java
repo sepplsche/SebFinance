@@ -4,11 +4,13 @@ import java.io.File;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
 import de.seppl.sebfinance.argument.ArgumentParser;
 import de.seppl.sebfinance.argument.Arguments;
+import de.seppl.sebfinance.kontoauszug.Kategorie;
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
 import de.seppl.sebfinance.pdf.ContentParser;
 import de.seppl.sebfinance.pdf.ContentParserV1;
@@ -29,11 +31,13 @@ public class Main {
         System.out.println(String.format("filtering %s Kontoauszüge...", auszuege.size()));
         auszuege = service.filter(auszuege);
 
-        // TODO sba
-        // auszuege = service.reduce(auszuege);
+        Map<Kategorie, Integer> kategorieMap = service.reduce(auszuege);
 
-        System.out.println(String.format("printing %s Kontoauszüge...", auszuege.size()));
-        service.printAuszuege(auszuege);
+        System.out.println(String.format("printing %s Entries...", kategorieMap.size()));
+        service.print(kategorieMap);
+
+        // System.out.println(String.format("printing %s Kontoauszüge...", auszuege.size()));
+        // service.print(auszuege);
     }
 
     private static Service init(String[] args) {

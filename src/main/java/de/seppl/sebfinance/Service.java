@@ -4,7 +4,10 @@ import java.io.File;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -16,8 +19,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static de.seppl.sebfinance.print.PrintableColumn.left;
 import static de.seppl.sebfinance.print.PrintableColumn.right;
 
+import de.seppl.sebfinance.kontoauszug.Gutschrift;
 import de.seppl.sebfinance.kontoauszug.Kategorie;
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
+import de.seppl.sebfinance.kontoauszug.Lastschrift;
 import de.seppl.sebfinance.kontoauszug.Posten;
 import de.seppl.sebfinance.pdf.KontoauszugParser;
 import de.seppl.sebfinance.pdf.PdfParser;
@@ -68,26 +73,51 @@ public class Service {
         return postens.stream().anyMatch(Posten::sonstiges);
     }
 
-    public Collection<Kontoauszug> reduce(Collection<Kontoauszug> auszuege) {
-        auszuege.stream() //
-                .map(this::reduce) //
-                .collect(toList());
-
-        // TODO sba
-
-        return null;
-    }
-
-    private Kontoauszug reduce(Kontoauszug auszug) {
-        Map<Kategorie, Integer> kategorieMap = auszug.posten().stream() //
+    public Map<Kategorie, Integer> reduce(Collection<Kontoauszug> auszuege) {
+        return auszuege.stream() //
+                .filter(auszug -> auszug.monat().getYear() == 2015) //
+                .map(Kontoauszug::posten) //
+                .flatMap(Collection::stream) //
                 .collect(toMap(Posten::kategorie, Posten::betrag, (a, b) -> a + b));
-
-        // TODO sba
-
-        return null;
     }
 
-    public void printAuszuege(Collection<Kontoauszug> auszuege) {
+    public void print(Map<Kategorie, Integer> kategorieMap) {
+        List<Entry<Kategorie, Integer>> gutschriften =
+                entries(kategorieMap, entry -> entry.getKey() instanceof Gutschrift);
+        List<Entry<Kategorie, Integer>> lastschriften =
+                entries(kategorieMap, entry -> entry.getKey() instanceof Lastschrift);
+
+        Collection<PrintableColumn<Entry<Kategorie, Integer>>> columns =
+                Arrays.asList(left("Kategorie", e -> e.getKey().name()), //
+                        right("Betrag", e -> (e.getKey() instanceof Gutschrift ? "+" : "-") + e.getValue() + " CHF"));
+        ConsolePrinter<Entry<Kategorie, Integer>> printer = new ConsolePrinter<>(columns);
+
+        printer.print(gutschriften);
+        int gutschrift = summe(gutschriften);
+        System.out.println("Gutschriften: " + gutschrift);
+
+        printer.print(lastschriften);
+        int lastschrift = summe(lastschriften);
+        System.out.println("Lastschriften: " + lastschrift);
+
+        System.out.println("Gespart: " + (gutschrift - lastschrift));
+    }
+
+    private List<Entry<Kategorie, Integer>> entries(Map<Kategorie, Integer> kategorieMap,
+            Predicate<Entry<Kategorie, Integer>> filter) {
+        return kategorieMap.entrySet().stream() //
+                .filter(filter) //
+                .sorted((a, b) -> a.getKey().name().compareTo(b.getKey().name())) //
+                .collect(toList());
+    }
+
+    private int summe(List<Entry<Kategorie, Integer>> entries) {
+        return entries.stream() //
+                .map(Entry::getValue) //
+                .reduce(0, (a, b) -> a + b);
+    }
+
+    public void print(Collection<Kontoauszug> auszuege) {
         Collection<PrintableColumn<Posten>> columns =
                 Arrays.asList(right("Betrag", e -> (e.gutschrift() ? "+" : "-") + e.betrag() + " CHF"), //
                         left("Kategorie", e -> e.kategorie().name()), //
