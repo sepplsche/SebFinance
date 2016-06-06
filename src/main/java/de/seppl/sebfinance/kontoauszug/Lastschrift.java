@@ -57,8 +57,7 @@ public enum Lastschrift implements Kategorie {
             "AUFTRAG 1 TRANSAKTION(EN)"), //
     INTERNET_TV(//
             "BILLAG", //
-            "INTERNET TV", //
-            "INTERNETTV", //
+            "INTERNET", //
             "CABLECOM"), //
     SKI_VELO(//
             "ZWEISIMMEN", //
@@ -66,12 +65,10 @@ public enum Lastschrift implements Kategorie {
             "ADELBODEN", //
             "MÜRREN", //
             "SKITESTWE", //
-            "SKI-UND VELO-CENTER", //
             "MOTO-CENTER BERN", //
             "SAANENMÖSER", //
-            "SCHALLER VELOS", //
+            "VELO", //
             "LENK", //
-            "SKI- UND VELO", //
             "CYCLETECH", //
             "SÜDSTRASSE GMBH MÜNSINGEN", //
             "GRINDELWALD"), //
@@ -143,8 +140,7 @@ public enum Lastschrift implements Kategorie {
             "BASEL VERS. HAUSHALT"), //
     KRANKHEIT(//
             "AKU M", //
-            "AKKU M", //
-            "M. AKKU", //
+            "AKKU", //
             "RÖNTGEN", //
             "APOTHEKE", //
             "SPITEX", //
@@ -159,7 +155,6 @@ public enum Lastschrift implements Kategorie {
             "KLINIK", //
             "OPTIK BERN", //
             "SONNENHOF", //
-            "AKKUPUNKTUR", //
             "LABOR", //
             "CITY NOTFALL", //
             "INSELSPITAL", //
