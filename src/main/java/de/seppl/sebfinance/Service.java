@@ -2,12 +2,11 @@ package de.seppl.sebfinance;
 
 import java.io.File;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -22,12 +21,12 @@ import static de.seppl.sebfinance.print.PrintableColumn.right;
 import de.seppl.sebfinance.kontoauszug.Gutschrift;
 import de.seppl.sebfinance.kontoauszug.Kategorie;
 import de.seppl.sebfinance.kontoauszug.Kontoauszug;
-import de.seppl.sebfinance.kontoauszug.Lastschrift;
 import de.seppl.sebfinance.kontoauszug.Posten;
 import de.seppl.sebfinance.pdf.KontoauszugParser;
 import de.seppl.sebfinance.pdf.PdfParser;
 import de.seppl.sebfinance.print.ConsolePrinter;
 import de.seppl.sebfinance.print.PrintableColumn;
+import de.seppl.sebfinance.report.Report;
 
 /**
  * @author Seppl
@@ -73,51 +72,39 @@ public class Service {
         return postens.stream().anyMatch(Posten::sonstiges);
     }
 
-    public Map<Kategorie, Integer> reduce(Collection<Kontoauszug> auszuege) {
+    public Collection<Report> reduce(Collection<Kontoauszug> auszuege) {
+        Map<Integer, Map<Kategorie, Integer>> years = auszuege.stream() //
+                .map(Kontoauszug::monat) //
+                .map(LocalDate::getYear) //
+                .collect(toMap(year -> year, year -> year(auszuege, year)));
+
+        Collection<Report> reports = new ArrayList<>();
+        return reports;
+    }
+
+    private Map<Kategorie, Integer> year(Collection<Kontoauszug> auszuege, int year) {
         return auszuege.stream() //
-                .filter(auszug -> auszug.monat().getYear() == 2015) //
+                .filter(auszug -> auszug.monat().getYear() == year) //
                 .map(Kontoauszug::posten) //
                 .flatMap(Collection::stream) //
                 .collect(toMap(Posten::kategorie, Posten::betrag, (a, b) -> a + b));
     }
 
-    public void print(Map<Kategorie, Integer> kategorieMap) {
-        List<Entry<Kategorie, Integer>> gutschriften =
-                entries(kategorieMap, entry -> entry.getKey() instanceof Gutschrift);
-        List<Entry<Kategorie, Integer>> lastschriften =
-                entries(kategorieMap, entry -> entry.getKey() instanceof Lastschrift);
-
-        Collection<PrintableColumn<Entry<Kategorie, Integer>>> columns =
-                Arrays.asList(left("Kategorie", e -> e.getKey().name()), //
-                        right("Betrag", e -> (e.getKey() instanceof Gutschrift ? "+" : "-") + e.getValue() + " CHF"));
-        ConsolePrinter<Entry<Kategorie, Integer>> printer = new ConsolePrinter<>(columns);
-
-        printer.print(gutschriften);
-        int gutschrift = summe(gutschriften);
-        System.out.println("Gutschriften: " + gutschrift);
-
-        printer.print(lastschriften);
-        int lastschrift = summe(lastschriften);
-        System.out.println("Lastschriften: " + lastschrift);
-
-        System.out.println("Gespart: " + (gutschrift - lastschrift));
+    public void printReports(Collection<Report> reports, IntStream years) {
+        Collection<PrintableColumn<Report>> columns = new ArrayList<>();
+        columns.add(left("Kategorie", Report::kategorie));
+        years.forEach(year -> {
+            columns.add(right("" + year, r -> betrag(r, year)));
+        });
+        ConsolePrinter<Report> printer = new ConsolePrinter<>(columns);
+        printer.print(reports);
     }
 
-    private List<Entry<Kategorie, Integer>> entries(Map<Kategorie, Integer> kategorieMap,
-            Predicate<Entry<Kategorie, Integer>> filter) {
-        return kategorieMap.entrySet().stream() //
-                .filter(filter) //
-                .sorted((a, b) -> a.getKey().name().compareTo(b.getKey().name())) //
-                .collect(toList());
+    private String betrag(Report report, int year) {
+        return (report.kategorie() instanceof Gutschrift ? "+" : "-") + report.betrag(year) + " CHF";
     }
 
-    private int summe(List<Entry<Kategorie, Integer>> entries) {
-        return entries.stream() //
-                .map(Entry::getValue) //
-                .reduce(0, (a, b) -> a + b);
-    }
-
-    public void print(Collection<Kontoauszug> auszuege) {
+    public void printAuszuege(Collection<Kontoauszug> auszuege) {
         Collection<PrintableColumn<Posten>> columns =
                 Arrays.asList(right("Betrag", e -> (e.gutschrift() ? "+" : "-") + e.betrag() + " CHF"), //
                         left("Kategorie", e -> e.kategorie().name()), //
